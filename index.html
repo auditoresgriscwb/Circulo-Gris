@@ -1,394 +1,1420 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>RECONHECIMENTO DA EQUIPE GRIS CWB</title>
+
 
 <style>
 
+/* =========================================================
+   CONFIGURAÇÃO GERAL DA PÁGINA
+   ========================================================= */
+
 body{
+
     margin:0;
+
     overflow:hidden;
+
     background:#121212;
+
     font-family:Arial, Helvetica, sans-serif;
+
 }
+
+
+/* =========================================================
+   BOLINHAS FLUTUANTES
+   ========================================================= */
 
 .bolinha{
+
     position:absolute;
+
     border-radius:50%;
+
     overflow:visible;
+
     cursor:pointer;
-    box-shadow:0 0 15px rgba(255,255,255,.2);
+
+    box-shadow:
+        0 0 15px rgba(255,255,255,.2);
+
 }
+
+
+/* Imagem dentro da bolinha flutuante */
 
 .bolinha img{
+
     width:100%;
+
     height:100%;
+
     display:block;
+
     object-fit:cover;
+
     border-radius:50%;
+
 }
+
+
+/* =========================================================
+   MENSAGEM DAS BOLINHAS
+   ========================================================= */
 
 .mensagem{
+
     position:absolute;
+
     bottom:110%;
+
     left:50%;
+
     transform:translateX(-50%);
+
     background:#ff3333;
+
     color:#fff;
+
     padding:8px 12px;
+
     border-radius:8px;
+
     font-size:14px;
+
     font-weight:bold;
+
     white-space:nowrap;
+
     display:none;
+
     z-index:9999;
-    box-shadow:0 0 10px rgba(0,0,0,.5);
+
+    box-shadow:
+        0 0 10px rgba(0,0,0,.5);
+
 }
 
-.estrelas{
-    position:absolute;
-    left:50%;
-    top:50%;
-    width:180%;
-    height:180%;
-    transform:translate(-50%,-50%);
-    pointer-events:none;
-}
 
-.estrela{
-    position:absolute;
-    transform:translate(-50%,-50%);
-    font-size:40px; /* DOBRO DO TAMANHO */
-    color:#444;
-    text-shadow:0 0 4px #000;
-}
-
-.estrela.ativa{
-    color:#FFD700;
-    text-shadow:
-        0 0 2px #FFD700,
-        0 0 10px #FFD700,
-        0 0 20px #FFD700,
-        0 0 30px #FFD700;
-}
+/* Mostra a mensagem ao passar o mouse */
 
 .bolinha:hover .mensagem{
+
     display:block;
+
+}
+
+
+/* =========================================================
+   ESTRELAS
+   ========================================================= */
+
+.estrelas{
+
+    position:absolute;
+
+    left:50%;
+
+    top:50%;
+
+    width:180%;
+
+    height:180%;
+
+    transform:translate(-50%,-50%);
+
+    pointer-events:none;
+
+}
+
+
+/* Estrela normal */
+
+.estrela{
+
+    position:absolute;
+
+    transform:translate(-50%,-50%);
+
+    font-size:40px;
+
+    color:#444;
+
+    text-shadow:0 0 4px #000;
+
+}
+
+
+/* Estrela ativada */
+
+.estrela.ativa{
+
+    color:#FFD700;
+
+    text-shadow:
+
+        0 0 2px #FFD700,
+
+        0 0 10px #FFD700,
+
+        0 0 20px #FFD700,
+
+        0 0 30px #FFD700;
+
+}
+
+
+/* =========================================================
+   BOLINHAS CAÍDAS
+   =========================================================
+   
+   Essas bolinhas ficam na parte inferior da tela.
+   Possuem aparência preta e branca.
+   ========================================================= */
+
+.bolinhaCaida{
+
+    position:absolute;
+
+    border-radius:50%;
+
+    overflow:visible;
+
+    cursor:grab;
+
+    background:#fff;
+
+    border:4px solid #000;
+
+    filter:grayscale(100%);
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,.8);
+
+    user-select:none;
+
+    touch-action:none;
+
+}
+
+
+/* Aparência enquanto a bolinha está sendo segurada */
+
+.bolinhaCaida.arrastando{
+
+    cursor:grabbing;
+
+    box-shadow:
+        0 12px 25px rgba(255,255,255,.3);
+
+    transform:scale(1.05);
+
+}
+
+
+/* Imagem das bolinhas caídas */
+
+.bolinhaCaida img{
+
+    width:100%;
+
+    height:100%;
+
+    display:block;
+
+    object-fit:cover;
+
+    border-radius:50%;
+
+    pointer-events:none;
+
+}
+
+
+/* Mensagem das bolinhas caídas */
+
+.bolinhaCaida .mensagem{
+
+    bottom:110%;
+
+}
+
+
+/* =========================================================
+   LINHA DO CHÃO
+   ========================================================= */
+
+.chao{
+
+    position:fixed;
+
+    left:0;
+
+    bottom:0;
+
+    width:100%;
+
+    height:4px;
+
+    background:#fff;
+
+    opacity:.12;
+
+    pointer-events:none;
+
 }
 
 </style>
+
 </head>
+
 
 <body>
 
+
+<!-- Linha visual do chão -->
+
+<div class="chao"></div>
+
+
 <script>
 
-// ===========================================
-// FOTOS E FRASES
-// ===========================================
 
-const pessoas = [
+// =========================================================
+// =========================================================
+// CADASTRO DAS PESSOAS
+// =========================================================
+// =========================================================
+//
+// IMPORTANTE:
+//
+// Cada pessoa deve estar em APENAS UMA das duas listas.
+//
+// pessoasFlutuantes = pessoa flutuando
+//
+// pessoasCaidas = pessoa caída no chão
+//
+// Para mudar uma pessoa de categoria, basta mover o bloco
+// dela de uma lista para a outra.
+//
+// NÃO coloque a mesma pessoa nas duas listas.
+// =========================================================
 
-{
-    foto:"doli.png",
-    frase:"Noosssaaaaaaaaaaaaa",
-    estrelas:0
-},
-    
-{
-    foto:"fabi.png",
-    frase:"Embarque auditado",
-    estrelas:0
-},
-    
-{
-    foto:"blzman.png",
-    frase:"Ta certo",
-    estrelas:0
-},
 
-{
-    foto:"novo.png",
-    frase:"HUmmmmmmmmmmmmmmmmmmm",
-    estrelas:0
-},
 
-{
-    foto:"braco.png",
-    frase:"AHHHH naooooooooo",
-    estrelas:0
-},
-    
-{
-    foto:"aura.png",
-    frase:"Bom trabalho",
-    estrelas:0
-},
-    
-{
-    foto:"gab.jpg",
-    frase:"Bom trabalho!",
-    estrelas:0
-},
+// =========================================================
+// PESSOAS QUE FICAM FLUTUANDO
+// =========================================================
 
-{
-    foto:"gabbs.png",
-    frase:"Manda o e-mail das iscas",
-    estrelas:1
-},
+const pessoasFlutuantes = [
 
-{
-    foto:"jon.jpg",
-    frase:"Nao quero saber",
-    estrelas:0
-},
+    {
+        foto:"doli.png",
+        frase:"Noosssaaaaaaaaaaaaa",
+        estrelas:0
+    },
 
-{
-    foto:"kau2.jpg",
-    frase:"Tenho uma duvida",
-    estrelas:0
-},
+    {
+        foto:"fabi.png",
+        frase:"Embarque auditado",
+        estrelas:0
+    },
 
-{
-    foto:"kauu.jpg",
-    frase:"Teve falta na Edenildes",
-    estrelas:1
-},
+    {
+        foto:"blzman.png",
+        frase:"Ta certo",
+        estrelas:0
+    },
 
-{
-    foto:"mai.jpg",
-    frase:"Esta contando as pecas",
-    estrelas:1
-},
+    {
+        foto:"novo.png",
+        frase:"HUmmmmmmmmmmmmmmmmmmm",
+        estrelas:0
+    },
 
-{
-    foto:"marcos.png",
-    frase:"Ja fez acareação",
-    estrelas:1
-},
+    {
+        foto:"braco.png",
+        frase:"AHHHH naooooooooo",
+        estrelas:0
+    },
 
-{
-    foto:"naty.png",
-    frase:"Hoje tem devolucao",
-    estrelas:1
-},
+    {
+        foto:"aura.png",
+        frase:"Bom trabalho",
+        estrelas:0
+    },
 
-{
-    foto:"nub.jpg",
-    frase:"O que tem pra fazer",
-    estrelas:0
-},
+    {
+        foto:"gab.jpg",
+        frase:"Bom trabalho!",
+        estrelas:0
+    },
 
-{
-    foto:"sofi.png",
-    frase:"Vou fazer embalagem analise",
-    estrelas:0
-},
+    {
+        foto:"gabbs.png",
+        frase:"Manda o e-mail das iscas",
+        estrelas:1
+    },
 
-{
-    foto:"yos.jpg",
-    frase:"Tudo certo",
-    estrelas:0
-}
+    {
+        foto:"jon.jpg",
+        frase:"Nao quero saber",
+        estrelas:0
+    },
+
+    {
+        foto:"kau2.jpg",
+        frase:"Tenho uma duvida",
+        estrelas:0
+    },
+
+    {
+        foto:"kauu.jpg",
+        frase:"Teve falta na Edenildes",
+        estrelas:1
+    },
+
+    {
+        foto:"mai.jpg",
+        frase:"Esta contando as pecas",
+        estrelas:1
+    },
+
+    {
+        foto:"marcos.png",
+        frase:"Ja fez acareação",
+        estrelas:1
+    },
+
+    {
+        foto:"nub.jpg",
+        frase:"O que tem pra fazer",
+        estrelas:0
+    },
+
+    {
+        foto:"sofi.png",
+        frase:"Vou fazer embalagem analise",
+        estrelas:0
+    },
+
+    {
+        foto:"yos.jpg",
+        frase:"Tudo certo",
+        estrelas:0
+    }
 
 ];
 
 
-// ===========================================
-// CRIA BOLINHAS
-// ===========================================
+
+// =========================================================
+// PESSOAS QUE FICAM CAÍDAS
+// =========================================================
+//
+// Exemplo:
+//
+// Se quiser tirar GAB da área flutuante:
+//
+// 1. Recorte o bloco dele de pessoasFlutuantes
+//
+// 2. Cole aqui:
+//
+// {
+//     foto:"gab.jpg",
+//     frase:"Bom trabalho!",
+//     estrelas:0
+// },
+//
+// A pessoa passará a ser CAÍDA e não ficará mais flutuando.
+//
+// =========================================================
+
+const pessoasCaidas = [
+
+    // COLOQUE AQUI AS PESSOAS QUE DEVEM FICAR CAÍDAS
+
+
+
+    {
+        foto:"naty.png",
+        frase:"Hoje tem devolucao",
+        estrelas:1
+    },
+
+
+
+];
+
+
+
+// =========================================================
+// ARRAY DAS BOLINHAS FLUTUANTES
+// =========================================================
 
 const bolinhas = [];
 
-pessoas.forEach(item => {
-
-    const div = document.createElement("div");
-
-    div.className = "bolinha";
-
-    // CORRIGIDO AQUI
-    div.innerHTML = `
-        <span class="mensagem">${item.frase}</span>
-
-        <div class="estrelas"></div>
-
-        <img src="${item.foto}" alt="${item.frase}">
-    `;
-
-    document.body.appendChild(div);
 
 
-    // ===========================================
-    // CRIA ESTRELAS
-    // ===========================================
+// =========================================================
+// ARRAY DAS BOLINHAS CAÍDAS
+// =========================================================
+
+const bolinhasCaidas = [];
+
+
+
+// =========================================================
+// FUNÇÃO PARA GERAR NÚMERO ALEATÓRIO
+// =========================================================
+// Utilizada somente para definir posições, tamanhos
+// e velocidades iniciais.
+// Não escolhe pessoas aleatoriamente.
+// =========================================================
+
+function aleatorio(min,max){
+
+    return Math.random() *
+        (max - min) +
+        min;
+
+}
+
+
+
+// =========================================================
+// FUNÇÃO PARA CRIAR AS ESTRELAS
+// =========================================================
+// Cria cinco estrelas ao redor da bolinha.
+// A quantidade de estrelas amarelas depende do valor
+// definido no cadastro da pessoa.
+// =========================================================
+
+function criarEstrelas(div, quantidade){
 
     const estrelasContainer =
         div.querySelector(".estrelas");
 
+
     const totalEstrelas = 5;
 
-    for(let i = 0; i < totalEstrelas; i++){
+
+    for(
+        let i = 0;
+        i < totalEstrelas;
+        i++
+    ){
 
         const estrela =
             document.createElement("span");
 
-        estrela.className = "estrela";
 
-        if(i < (item.estrelas || 0)){
-            estrela.classList.add("ativa");
+        estrela.className =
+            "estrela";
+
+
+        // Define quais estrelas ficam ativas
+
+        if(
+            i <
+            (quantidade || 0)
+        ){
+
+            estrela.classList.add(
+                "ativa"
+            );
+
         }
+
+
+        // Desenha a estrela
 
         estrela.innerHTML = "★";
 
+
+        // Calcula o ângulo da estrela
+
         const angulo =
-            (Math.PI * 2 * i / totalEstrelas)
+            (Math.PI * 2 * i /
+            totalEstrelas)
             - Math.PI / 2;
 
-        const raio = 32; //DISTANCIA DA ESTELA DO CIRCULO
+
+        // Define a distância da estrela
+
+        const raio = 32;
+
+
+        // Calcula posição horizontal
 
         const x =
-            50 + Math.cos(angulo) * raio;
+            50 +
+            Math.cos(angulo) *
+            raio;
+
+
+        // Calcula posição vertical
 
         const y =
-            50 + Math.sin(angulo) * raio;
+            50 +
+            Math.sin(angulo) *
+            raio;
 
-        estrela.style.left = x + "%";
-        estrela.style.top = y + "%";
 
-        estrelasContainer.appendChild(estrela);
+        estrela.style.left =
+            x + "%";
+
+
+        estrela.style.top =
+            y + "%";
+
+
+        // Coloca a estrela na bolinha
+
+        estrelasContainer.appendChild(
+            estrela
+        );
+
     }
 
+}
 
-    // ===========================================
-    // CONFIGURAÇÃO DA BOLINHA
-    // ===========================================
 
-    bolinhas.push({
+
+// =========================================================
+// FUNÇÃO PARA CRIAR UMA BOLINHA FLUTUANTE
+// =========================================================
+// Recebe uma pessoa da lista pessoasFlutuantes
+// e cria visualmente a bolinha na tela.
+// =========================================================
+
+function criarBolinhaFlutuante(item){
+
+    const div =
+        document.createElement("div");
+
+
+    div.className =
+        "bolinha";
+
+
+    // Cria o conteúdo da bolinha
+
+    div.innerHTML = `
+
+        <span class="mensagem">
+            ${item.frase}
+        </span>
+
+        <div class="estrelas"></div>
+
+        <img
+            src="${item.foto}"
+            alt="${item.frase}"
+        >
+
+    `;
+
+
+    // Adiciona ao documento
+
+    document.body.appendChild(
+        div
+    );
+
+
+    // Cria as estrelas
+
+    criarEstrelas(
+        div,
+        item.estrelas
+    );
+
+
+    // Cria as propriedades físicas da bolinha
+
+    const bolinha = {
 
         el:div,
 
-        x:Math.random() * window.innerWidth,
+        x:
+            Math.random() *
+            window.innerWidth,
 
-        y:Math.random() * window.innerHeight,
+        y:
+            Math.random() *
+            window.innerHeight,
 
-        vx:(Math.random() * 1.5) + 0.5,
+        vx:
+            (Math.random() * 1.5) +
+            0.5,
 
-        vy:(Math.random() * 1.5) + 0.5,
+        vy:
+            (Math.random() * 1.5) +
+            0.5,
 
-        tamanhoBase:60 + Math.random() * 60,
+        tamanhoBase:
+            60 +
+            Math.random() * 60,
 
-        fase:Math.random() * Math.PI * 2
+        fase:
+            Math.random() *
+            Math.PI * 2
 
-    });
-
-});
+    };
 
 
-// ===========================================
-// ANIMAÇÃO
-// ===========================================
+    // Guarda a bolinha no array
 
-let tempo = 0;
+    bolinhas.push(
+        bolinha
+    );
+
+}
+
+
+
+// =========================================================
+// CRIA AS BOLINHAS FLUTUANTES
+// =========================================================
+// Somente as pessoas cadastradas em
+// pessoasFlutuantes serão criadas aqui.
+// =========================================================
+
+pessoasFlutuantes.forEach(
+    item => {
+
+        criarBolinhaFlutuante(
+            item
+        );
+
+    }
+);
+
+
+
+// =========================================================
+// FUNÇÃO PARA CRIAR UMA BOLINHA CAÍDA
+// =========================================================
+// Recebe uma pessoa da lista pessoasCaidas.
+// Essa pessoa NÃO será criada como flutuante.
+// =========================================================
+
+function criarBolinhaCaida(item){
+
+    const div =
+        document.createElement("div");
+
+
+    div.className =
+        "bolinhaCaida";
+
+
+    // Cria o conteúdo da bolinha
+
+    div.innerHTML = `
+
+        <span class="mensagem">
+            ${item.frase}
+        </span>
+
+        <img
+            src="${item.foto}"
+            alt="${item.frase}"
+        >
+
+    `;
+
+
+    // Adiciona ao documento
+
+    document.body.appendChild(
+        div
+    );
+
+
+    // Define tamanho aleatório
+
+    const tamanho =
+        aleatorio(
+            55,
+            90
+        );
+
+
+    // Define posição horizontal
+
+    const x =
+        aleatorio(
+            10,
+            Math.max(
+                10,
+                window.innerWidth -
+                tamanho -
+                10
+            )
+        );
+
+
+    // Define a posição vertical
+    // um pouco acima do chão
+
+    const y =
+        window.innerHeight -
+        tamanho -
+        aleatorio(
+            0,
+            100
+        );
+
+
+    // Cria o objeto físico da bolinha
+
+    const bolinha = {
+
+        el:div,
+
+        x:x,
+
+        y:y,
+
+        tamanho:tamanho,
+
+        velocidadeY:0,
+
+        gravidade:0.35,
+
+        arrastando:false,
+
+        offsetX:0,
+
+        offsetY:0
+
+    };
+
+
+    // Define tamanho da bolinha
+
+    div.style.width =
+        tamanho + "px";
+
+
+    div.style.height =
+        tamanho + "px";
+
+
+    // Guarda no array
+
+    bolinhasCaidas.push(
+        bolinha
+    );
+
+
+    // Configura o arrastamento
+
+    configurarMouse(
+        bolinha
+    );
+
+}
+
+
+
+// =========================================================
+// CRIA AS BOLINHAS CAÍDAS
+// =========================================================
+// Somente as pessoas cadastradas em
+// pessoasCaidas serão criadas aqui.
+// =========================================================
+
+pessoasCaidas.forEach(
+    item => {
+
+        criarBolinhaCaida(
+            item
+        );
+
+    }
+);
+
+
+
+// =========================================================
+// FUNÇÃO PARA CONFIGURAR O MOUSE
+// =========================================================
+// Permite pegar a bolinha caída e arrastá-la.
+// Ao soltar o mouse, a gravidade volta a funcionar.
+// =========================================================
+
+function configurarMouse(bolinha){
+
+    const elemento =
+        bolinha.el;
+
+
+    // =====================================================
+    // QUANDO O MOUSE É PRESSIONADO
+    // =====================================================
+
+    elemento.addEventListener(
+        "mousedown",
+        function(event){
+
+            // Ativa o modo arrastar
+
+            bolinha.arrastando =
+                true;
+
+
+            // Adiciona aparência de segurando
+
+            elemento.classList.add(
+                "arrastando"
+            );
+
+
+            // Calcula o ponto onde o mouse
+            // pegou a bolinha
+
+            bolinha.offsetX =
+                event.clientX -
+                bolinha.x;
+
+
+            bolinha.offsetY =
+                event.clientY -
+                bolinha.y;
+
+
+            // Para a queda enquanto segura
+
+            bolinha.velocidadeY =
+                0;
+
+
+            // Impede seleção de texto
+
+            event.preventDefault();
+
+        }
+    );
+
+
+    // =====================================================
+    // QUANDO O MOUSE SE MOVIMENTA
+    // =====================================================
+
+    document.addEventListener(
+        "mousemove",
+        function(event){
+
+            // Só movimenta se estiver segurando
+
+            if(
+                !bolinha.arrastando
+            ){
+
+                return;
+
+            }
+
+
+            // Atualiza posição horizontal
+
+            bolinha.x =
+                event.clientX -
+                bolinha.offsetX;
+
+
+            // Atualiza posição vertical
+
+            bolinha.y =
+                event.clientY -
+                bolinha.offsetY;
+
+
+            // Impede sair pelo lado esquerdo
+
+            if(
+                bolinha.x < 0
+            ){
+
+                bolinha.x = 0;
+
+            }
+
+
+            // Impede sair pelo lado direito
+
+            if(
+                bolinha.x +
+                bolinha.tamanho >
+                window.innerWidth
+            ){
+
+                bolinha.x =
+                    window.innerWidth -
+                    bolinha.tamanho;
+
+            }
+
+
+            // Impede sair pelo topo
+
+            if(
+                bolinha.y < 0
+            ){
+
+                bolinha.y = 0;
+
+            }
+
+        }
+    );
+
+
+    // =====================================================
+    // QUANDO O MOUSE É SOLTO
+    // =====================================================
+
+    document.addEventListener(
+        "mouseup",
+        function(){
+
+            // Verifica se estava sendo arrastada
+
+            if(
+                !bolinha.arrastando
+            ){
+
+                return;
+
+            }
+
+
+            // Desativa o arrastamento
+
+            bolinha.arrastando =
+                false;
+
+
+            // Remove efeito visual
+
+            elemento.classList.remove(
+                "arrastando"
+            );
+
+
+            // Faz a bolinha começar a cair
+
+            bolinha.velocidadeY =
+                1;
+
+        }
+    );
+
+}
+
+
+
+// =========================================================
+// FUNÇÃO PARA ANIMAR AS BOLINHAS FLUTUANTES
+// =========================================================
+// Faz as bolinhas se movimentarem pela tela,
+// inclusive o efeito de pulsação e colisão nas bordas.
+// =========================================================
+
+function animarFlutuantes(){
+
+    const tempo =
+        performance.now() /
+        1000;
+
+
+    bolinhas.forEach(
+        b => {
+
+
+            // Cria efeito de pulsação
+
+            const escala =
+                0.7 +
+                Math.sin(
+                    tempo * 1.2 +
+                    b.fase
+                ) * 0.3;
+
+
+            // Calcula tamanho atual
+
+            const tamanho =
+                b.tamanhoBase *
+                (1 + escala);
+
+
+            // Move horizontalmente
+
+            b.x += b.vx;
+
+
+            // Move verticalmente
+
+            b.y += b.vy;
+
+
+            // Colisão esquerda/direita
+
+            if(
+                b.x <= 0 ||
+                b.x + tamanho >=
+                window.innerWidth
+            ){
+
+                b.vx *= -1;
+
+            }
+
+
+            // Colisão cima/baixo
+
+            if(
+                b.y <= 0 ||
+                b.y + tamanho >=
+                window.innerHeight
+            ){
+
+                b.vy *= -1;
+
+            }
+
+
+            // Atualiza tamanho
+
+            b.el.style.width =
+                tamanho + "px";
+
+
+            b.el.style.height =
+                tamanho + "px";
+
+
+            // Atualiza posição horizontal
+
+            b.el.style.left =
+                b.x + "px";
+
+
+            // Atualiza posição vertical
+
+            b.el.style.top =
+                b.y + "px";
+
+
+            // Define camada visual
+
+            b.el.style.zIndex =
+                Math.floor(
+                    tamanho
+                );
+
+        }
+    );
+
+}
+
+
+
+// =========================================================
+// FUNÇÃO PARA ANIMAR AS BOLINHAS CAÍDAS
+// =========================================================
+// Aplica gravidade e faz as bolinhas caírem até o chão.
+// =========================================================
+
+function animarCaidas(){
+
+    bolinhasCaidas.forEach(
+        b => {
+
+
+            // Enquanto estiver sendo segurada,
+            // não aplica gravidade.
+
+            if(
+                b.arrastando
+            ){
+
+                return;
+
+            }
+
+
+            // Aplica gravidade
+
+            b.velocidadeY +=
+                b.gravidade;
+
+
+            // Move para baixo
+
+            b.y +=
+                b.velocidadeY;
+
+
+            // Calcula posição do chão
+
+            const chao =
+                window.innerHeight -
+                b.tamanho;
+
+
+            // Verifica se chegou ao chão
+
+            if(
+                b.y >= chao
+            ){
+
+                b.y = chao;
+
+
+                // Pequeno quique
+
+                if(
+                    Math.abs(
+                        b.velocidadeY
+                    ) > 2
+                ){
+
+                    b.velocidadeY *=
+                        -0.25;
+
+                }
+
+                else{
+
+                    // Para quando o quique
+                    // fica muito pequeno
+
+                    b.velocidadeY =
+                        0;
+
+                }
+
+            }
+
+
+            // Impede sair pela esquerda
+
+            if(
+                b.x < 0
+            ){
+
+                b.x = 0;
+
+            }
+
+
+            // Impede sair pela direita
+
+            if(
+                b.x +
+                b.tamanho >
+                window.innerWidth
+            ){
+
+                b.x =
+                    window.innerWidth -
+                    b.tamanho;
+
+            }
+
+
+            // Atualiza posição na tela
+
+            b.el.style.left =
+                b.x + "px";
+
+
+            b.el.style.top =
+                b.y + "px";
+
+        }
+    );
+
+}
+
+
+
+// =========================================================
+// FUNÇÃO PRINCIPAL DE ANIMAÇÃO
+// =========================================================
+// Junta todas as animações em um único loop.
+// =========================================================
 
 function animar(){
 
-    tempo += 0.02;
+    // Anima as bolinhas flutuantes
 
-    bolinhas.forEach(b => {
-
-        const escala =
-            0.7 +
-            Math.sin(tempo + b.fase) * 0.3;
-
-        const tamanho =
-            b.tamanhoBase * (1 + escala);
-
-        b.x += b.vx;
-
-        b.y += b.vy;
+    animarFlutuantes();
 
 
-        if(
-            b.x <= 0 ||
-            b.x + tamanho >= window.innerWidth
-        ){
+    // Anima as bolinhas caídas
 
-            b.vx *= -1;
-
-        }
+    animarCaidas();
 
 
-        if(
-            b.y <= 0 ||
-            b.y + tamanho >= window.innerHeight
-        ){
+    // Continua o loop
 
-            b.vy *= -1;
-
-        }
-
-
-        b.el.style.width =
-            tamanho + "px";
-
-        b.el.style.height =
-            tamanho + "px";
-
-        b.el.style.left =
-            b.x + "px";
-
-        b.el.style.top =
-            b.y + "px";
-
-        b.el.style.zIndex =
-            Math.floor(tamanho);
-
-    });
-
-    requestAnimationFrame(animar);
+    requestAnimationFrame(
+        animar
+    );
 
 }
+
+
+
+// =========================================================
+// INICIA A ANIMAÇÃO
+// =========================================================
 
 animar();
 
 
-// ===========================================
+
+// =========================================================
+// FUNÇÃO PARA AJUSTAR AS BOLINHAS AO REDIMENSIONAR
+// =========================================================
+// Garante que as bolinhas caídas não fiquem fora
+// da tela quando a janela mudar de tamanho.
+// =========================================================
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        bolinhasCaidas.forEach(
+            b => {
+
+
+                // Ajusta o lado direito
+
+                if(
+                    b.x +
+                    b.tamanho >
+                    window.innerWidth
+                ){
+
+                    b.x =
+                        window.innerWidth -
+                        b.tamanho;
+
+                }
+
+
+                // Calcula o novo chão
+
+                const chao =
+                    window.innerHeight -
+                    b.tamanho;
+
+
+                // Ajusta posição vertical
+
+                if(
+                    b.y > chao
+                ){
+
+                    b.y = chao;
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+
+// =========================================================
 // WAKE LOCK
-// ===========================================
+// =========================================================
+// Tenta impedir que a tela desligue enquanto a página
+// estiver sendo utilizada.
+// =========================================================
 
 let wakeLock = null;
 
+
+
+// =========================================================
+// FUNÇÃO PARA ATIVAR O WAKE LOCK
+// =========================================================
+
 async function ativarWakeLock(){
 
-    if(!("wakeLock" in navigator)){
+    // Verifica se o navegador suporta Wake Lock
+
+    if(
+        !("wakeLock" in navigator)
+    ){
+
         return;
+
     }
+
 
     try{
 
+        // Solicita que a tela permaneça ligada
+
         wakeLock =
-            await navigator.wakeLock.request("screen");
+            await navigator.wakeLock.request(
+                "screen"
+            );
 
     }
 
     catch(e){
 
-        console.log(e);
+        console.log(
+            "Wake Lock não disponível:",
+            e
+        );
 
     }
 
 }
 
+
+
+// =========================================================
+// ATIVA O WAKE LOCK
+// =========================================================
+
 ativarWakeLock();
 
 
+
+// =========================================================
+// REATIVA O WAKE LOCK QUANDO A PÁGINA VOLTAR
+// =========================================================
+
 document.addEventListener(
     "visibilitychange",
-    () => {
+    function(){
 
-        if(document.visibilityState === "visible"){
+        if(
+            document.visibilityState ===
+            "visible"
+        ){
 
             ativarWakeLock();
 
@@ -397,7 +1423,9 @@ document.addEventListener(
     }
 );
 
+
 </script>
 
 </body>
+
 </html>
